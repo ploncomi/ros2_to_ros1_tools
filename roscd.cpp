@@ -96,11 +96,19 @@ int main(int argc, char *argv[])
 
   if (!any_ok)
   {
-    std::cout << argv[1] << " is not a ros package name" << std::endl;
-    std::cout << "available packages:" << std::endl;
-    std::sort(all_packages.begin(), all_packages.end());
-    for (std::string s : all_packages)
-      std::cout << "  " << s << std::endl;
+    if (std::string(argv[1]) == "LIST")
+    {
+      for (std::string s : all_packages)
+        std::cout << s << " ";
+    }
+    else
+    {
+      std::cout << argv[1] << " is not a ros package name" << std::endl;
+      std::cout << "available packages:" << std::endl;
+      std::sort(all_packages.begin(), all_packages.end());
+      for (std::string s : all_packages)
+        std::cout << "  " << s << std::endl;
+    }
   }
 
   return 0;
