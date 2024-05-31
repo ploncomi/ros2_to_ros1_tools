@@ -1,6 +1,6 @@
 # ros2_tools
 
-Basic tools for ros2, for emulating ros1 tools
+Basic tools for ros2, for emulating ros1 . Requires c++17 to compile.
 
 * Copy the files to a folder PATH_TO_ROSCD
 
