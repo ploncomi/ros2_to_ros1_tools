@@ -2,19 +2,11 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <filesystem>
 
 namespace fs = std::filesystem;
-
-void inject_shell(const char* cmd)
-{
-  int i = 0;
-  while (cmd[i] != '\0')
-  {
-    ioctl(0, TIOCSTI, &cmd[i++]);
-  }
-}
 
 void inject_shell(std::string cmd)
 {
@@ -22,6 +14,17 @@ void inject_shell(std::string cmd)
     ioctl(0, TIOCSTI, &c);
 }
 
+bool hasEnding (std::string const &fullString, std::string const &ending)
+{
+    if (fullString.length() >= ending.length())
+    {
+        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+    }
+    else
+    {
+        return false;
+    }
+}
 
 std::string getEnv( const std::string & var )
 {
@@ -48,16 +51,26 @@ int main(int argc, char *argv[])
 
   std::string src_path = getEnv("ROS_PACKAGE_PATH") + "/../../../src";
   std::filesystem::current_path({src_path});
-  std::cout << std::filesystem::current_path() << std::endl;
+
+  bool any_ok = false;
 
   for(auto& p: fs::recursive_directory_iterator(".", fs::directory_options::skip_permission_denied))
   {
-    if (p.path().string().find(argv[1]) != std::string::npos)
-    {
-      inject_shell("cd " + src_path + "/" + p.path().string() + "\r");
-      break;
-    }
+    if (!hasEnding(p.path().string(), argv[1]))
+      continue;
+
+    std::ifstream f(p.path().string() + "/package.xml");
+
+    if (!f.good())
+      continue;
+
+    inject_shell("cd " + src_path + "/" + p.path().string() + "\r");
+    any_ok = true;
+    break;
   }
+
+  if (!any_ok)
+    std::cout << argv[1] << " is not a ros package name" << std::endl;
 
   return 0;
 }
