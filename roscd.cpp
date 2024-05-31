@@ -4,6 +4,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
+#include <algorithm>
 #include <filesystem>
 
 namespace fs = std::filesystem;
@@ -16,15 +18,33 @@ void inject_shell(std::string cmd)
 
 bool hasEnding (std::string const &fullString, std::string const &ending)
 {
-    if (fullString.length() >= ending.length())
-    {
-        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
-    }
-    else
-    {
-        return false;
-    }
+  if (fullString.length() >= ending.length())
+  {
+    return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+  }
+  else
+  {
+    return false;
+  }
 }
+
+std::vector<std::string> split(std::string s, std::string delimiter)
+{
+  size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+  std::string token;
+  std::vector<std::string> res;
+
+  while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos)
+  {
+    token = s.substr (pos_start, pos_end - pos_start);
+    pos_start = pos_end + delim_len;
+    res.push_back (token);
+  }
+
+  res.push_back (s.substr (pos_start));
+  return res;
+}
+
 
 std::string getEnv( const std::string & var )
 {
@@ -49,6 +69,8 @@ int main(int argc, char *argv[])
     return 0;
   }
 
+  std::vector<std::string> all_packages;
+
   std::string src_path = getEnv("ROS_PACKAGE_PATH") + "/../../../src";
   std::filesystem::current_path({src_path});
 
@@ -56,12 +78,15 @@ int main(int argc, char *argv[])
 
   for(auto& p: fs::recursive_directory_iterator(".", fs::directory_options::skip_permission_denied))
   {
-    if (!hasEnding(p.path().string(), argv[1]))
-      continue;
-
     std::ifstream f(p.path().string() + "/package.xml");
 
     if (!f.good())
+      continue;
+
+    std::vector<std::string> splitted = split(p.path().string(), "/");
+    all_packages.push_back(splitted.back());
+
+    if (!hasEnding(p.path().string(), argv[1]))
       continue;
 
     inject_shell("cd " + src_path + "/" + p.path().string() + "\r");
@@ -70,7 +95,13 @@ int main(int argc, char *argv[])
   }
 
   if (!any_ok)
+  {
     std::cout << argv[1] << " is not a ros package name" << std::endl;
+    std::cout << "available packages:" << std::endl;
+    std::sort(all_packages.begin(), all_packages.end());
+    for (std::string s : all_packages)
+      std::cout << "  " << s << std::endl;
+  }
 
   return 0;
 }
