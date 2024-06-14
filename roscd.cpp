@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
 
   if (!any_ok)
   {
-    if (std::string(argv[1]) == "LIST")
+    if (std::string(argv[1]) == "--list")
     {
       for (std::string s : all_packages)
         std::cout << s << " ";
