@@ -1,6 +1,11 @@
+#!/bin/bash
+
+ROS2_TO_ROS1_PATH="$(dirname $BASH_SOURCE)"
+
 alias rosnode='ros2 node'
 alias rosservice='ros2 service'
 alias rosbag='ros2 bag'
+alias roscd='$ROS2_TO_ROS1_PATH/roscd'
 
 _roscd() 
 {
