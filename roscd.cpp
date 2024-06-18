@@ -69,9 +69,20 @@ int main(int argc, char *argv[])
     return 0;
   }
 
+  bool go_to_share_dir = false;
+
+  if (argc >= 3 && std::string(argv[2]) == "--share")
+    go_to_share_dir = true;
+
+
   std::vector<std::string> all_packages;
 
-  std::string src_path = getEnv("ROS_PACKAGE_PATH") + "/../../../src";
+  std::string src_path;
+
+  if (go_to_share_dir)
+    src_path = getEnv("ROS_PACKAGE_PATH") + "/../..";
+  else
+    src_path = getEnv("ROS_PACKAGE_PATH") + "/../../../src";
   std::filesystem::current_path({src_path});
 
   bool any_ok = false;
